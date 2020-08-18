@@ -2,23 +2,34 @@ FROM jenkins/inbound-agent:4.3-8-alpine
 
 USER root
 
+# add alpine repositories
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories \
     && echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
-    && echo "http://dl-cdn.alpinelinux.org/alpine/v3.11/main" >> /etc/apk/repositories \
-    && apk upgrade -U -a \
-    && apk add --no-cache \
+    && echo "http://dl-cdn.alpinelinux.org/alpine/v3.11/main" >> /etc/apk/repositories 
+	
+# fetch and install latest updates
+RUN apk update && apk upgrade -U -a 
+    
+# install Angular build requirements
+RUN	apk add --no-cache \
 	nodejs \
-	npm \
-    libstdc++ \
+	npm
+    
+# install chromium for frontend tests with karma
+RUN	apk add --no-cache \	
+	libstdc++ \
     chromium \
     harfbuzz \
     nss \
     freetype \
     ttf-freefont \
-    wqy-zenhei \
-    && rm -rf /var/cache/* \
+    wqy-zenhei
+
+# clear cache
+RUN rm -rf /var/cache/* \
     && mkdir /var/cache/apk
 
+# set environment vars for chromium
 ENV CHROME_BIN=/usr/bin/chromium-browser \
     CHROME_PATH=/usr/lib/chromium/
